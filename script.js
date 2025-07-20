@@ -10,6 +10,16 @@ const account1 = {
   movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
   interestRate: 1.2, // %
   pin: 1111,
+  movementsDates: [
+    '2025-05-26T21:31:17.178Z',
+    '2025-05-24T07:42:02.383Z',
+    '2025-05-23T09:15:04.904Z',
+    '2025-05-29T10:17:24.185Z',
+    '2025-05-27T14:11:59.604Z',
+    '2025-05-27T17:01:17.194Z',
+    '2025-04-29T23:36:17.929Z',
+    '2025-03-01T10:51:36.790Z',
+  ],
 };
 // test
 
@@ -18,6 +28,16 @@ const account2 = {
   movements: [5000, 3400, -150, -790, -3210, -1000, 8500, -30],
   interestRate: 1.5,
   pin: 2222,
+  movementsDates: [
+    '2025-07-12T08:45:23.182Z',
+    '2025-06-28T15:34:55.911Z',
+    '2025-06-15T11:29:13.477Z',
+    '2025-06-01T22:14:48.203Z',
+    '2025-05-18T05:42:31.004Z',
+    '2025-04-30T19:07:16.789Z',
+    '2025-04-10T16:23:09.342Z',
+    '2025-03-25T01:56:44.125Z',
+  ],
 };
 
 const account3 = {
@@ -25,6 +45,18 @@ const account3 = {
   movements: [200, -200, 340, -300, -20, 50, 400, -460],
   interestRate: 0.7,
   pin: 3333,
+  movementsDates: [
+    '2025-05-26T21:31:17.178Z',
+    '2025-05-24T07:42:02.383Z',
+    '2025-05-23T09:15:04.904Z',
+    '2025-05-29T10:17:24.185Z',
+    '2025-05-27T14:11:59.604Z',
+    '2025-05-27T17:01:17.194Z',
+    '2025-04-29T23:36:17.929Z',
+    '2025-03-01T10:51:36.790Z',
+    '2025-02-12T14:18:36.524Z',
+    '2025-01-30T09:47:22.816Z',
+  ],
 };
 
 const account4 = {
@@ -32,6 +64,18 @@ const account4 = {
   movements: [430, 1000, 700, 50, 90],
   interestRate: 1,
   pin: 4444,
+  movementsDates: [
+    '2025-05-26T21:31:17.178Z',
+    '2025-05-24T07:42:02.383Z',
+    '2025-05-23T09:15:04.904Z',
+    '2025-05-29T10:17:24.185Z',
+    '2025-05-27T14:11:59.604Z',
+    '2025-05-27T17:01:17.194Z',
+    '2025-04-29T23:36:17.929Z',
+    '2025-03-01T10:51:36.790Z',
+    '2025-02-12T14:18:36.524Z',
+    '2025-01-30T09:47:22.816Z',
+  ],
 };
 
 const accounts = [account1, account2, account3, account4];
@@ -67,29 +111,70 @@ const accountClosed = document.querySelector('.account-delet');
 const loanAprroved = document.querySelector('.Loan-amount-accepted');
 //selecting one more element
 const loanRejected = document.querySelector('.Loan-amount-was-rejected');
+const timer = document.querySelector('.timer');
+// This is the Logout
+// Creating a sperate function for the logout just to exprot the logout functionality
+let current_date = new Date();
+let logout;
+const logoutLogic = function () {
+  // we need to reset the time to minuets
+  let time = 300; // here we have converted the 5 minuets into the seconds
+  // updating the timmer every second to the ui
+  const tick = function () {
+    // convert them to string and usign pad start adding zero to start
+    const mins = String(Math.trunc(time / 60)).padStart(2, 0);
+    const sec = String(Math.trunc(time % 60)).padStart(2, 0);
+    timer.textContent = `${mins}:${sec}`;
+    if (time === 0) {
+      clearInterval(logout);
+      containerApp.style.opacity = 0;
+      labelWelcome.textContent = 'Log in to get started';
+    }
+    // Decreasing the time by 1 sec everytime
+    time--;
+  };
+  tick();
+  logout = setInterval(tick, 1000);
+  return logout;
+};
+console.log(logout);
+// creating a logic where we dont have to write the logic of clearing the timer every time and action or login is done
+const LogoutTimer = function () {
+  if (logout > 0) clearInterval(logout);
+  logout = logoutLogic();
+};
 //  This is for the transcations in the account
+
 const calcsummary = function (acc) {
   let incomes = acc.movements
     .filter(mov => mov > 0)
     .reduce((acc, curr) => acc + curr, 0);
-  labelSumIn.textContent = `${incomes}💲`;
+  labelSumIn.textContent = `${incomes.toFixed(2)}💲`;
   let out = acc.movements
     .filter(mov => mov < 0)
     .reduce((acc, curr) => acc + curr);
-  labelSumOut.textContent = `${Math.abs(out)}💲`;
+  labelSumOut.textContent = `${Math.abs(out).toFixed(2)}💲`;
   const intrest = acc.movements
     .filter(mov => mov > 0)
     .map(mov => (mov * acc.interestRate) / 100)
     .filter(i => i >= 1)
     .reduce((acc, curr) => acc + curr, 0);
-  labelSumInterest.textContent = `${intrest}💲 `;
+  labelSumInterest.textContent = `${intrest.toFixed(2)}💲 `;
 };
 console.log('---Postive balance');
 // calcsummary(account1.movements);
-const displayMovements = function (movements) {
+const displayMovements = function (current_acc) {
   // This is to remove the all the current html in the elemtns
   containerMovements.innerHTML = '';
-  movements.forEach(function (Elements, index) {
+  const movs = current_acc.movements;
+  movs.forEach(function (Elements, index) {
+    //  to get the date of the each transcation we use the index so that we can get the dates
+    let transcation_Dates = new Date(current_acc.movementsDates[index]);
+    const day = transcation_Dates.getDate(); // ✅
+    const month = transcation_Dates.getMonth() + 1;
+    const year = transcation_Dates.getFullYear();
+    const displayDate = `${day}/${month}/${year}`;
+
     // Here we check wheter the transcation is either a deposti or a withdrawl
     const type = Elements > 0 ? 'deposit' : 'withdrawal';
     // Here we haved pasted the html wiich are sleceted
@@ -97,7 +182,9 @@ const displayMovements = function (movements) {
             <div class="movements__type movements__type--${type}">${
       index + 1
     }  ${type}</div> 
-            <div class="movements__value">${Elements}💶</div>
+   <div>${displayDate}</div>
+   
+            <div class="movements__value">${Elements.toFixed(2)}  </div>
           </div>`;
     // here we have used a method of js and afeterbegin porperty which will put the elemtn after the container
     // console.log(typeof html);
@@ -115,7 +202,7 @@ const displayMovements = function (movements) {
 // Here we calaculate the balnce in the account
 const calcPrintBalance = function (account) {
   account.balance = account.movements.reduce((acc, curr) => acc + curr, 0);
-  labelBalance.textContent = `${account.balance}$ `;
+  labelBalance.textContent = `${account.balance.toFixed(2)}$ `;
 
   // labelBalance.textContent = `${account.balance}$ `;
   // console.log(balance);
@@ -148,16 +235,17 @@ const userName = function (acc) {
   });
 };
 userName(accounts);
-// Login fetaur
+// Login feature
 //topic updateUi this to update the ui bacscially we update the current balnce movents and everyhting in the ui
 const updateUi = function () {
-  displayMovements(current.movements); // now as we have written the movents function up overe there we are now calling that function overe here with current.movents the current holds the current user id and password inculding the data stored in the object
+  displayMovements(current); // now as we have written the movents function up overe there we are now calling that function overe here with current.movents the current holds the current user id and password inculding the data stored in the object
   // Important
   calcPrintBalance(current); // here we only need to get the blance of the current account
 
   // Display summary
   calcsummary(current);
 };
+
 // here we decided the current login users to start the futher logic bulding
 let current;
 btnLogin.addEventListener('click', function (e) {
@@ -168,6 +256,10 @@ btnLogin.addEventListener('click', function (e) {
   if (current && current.pin === Number(inputLoginPin.value)) {
     console.log('Login Scusesfull');
     console.log(current);
+    // need to make sure timer every time rest when the login happens
+    LogoutTimer();
+    // Starting the Logout timmer
+
     //  Display ui and welcome message
     labelWelcome.textContent = `WelcomeBack , ${current.owner.split(' ')[0]}`;
 
@@ -186,6 +278,7 @@ btnLogin.addEventListener('click', function (e) {
 // Implemting Transfer money
 btnTransfer.addEventListener('click', function (e) {
   e.preventDefault();
+
   const amount = Number(inputTransferAmount.value); // geting the amount and converting that to and Integer
   const reciverAccount = accounts.find(
     transferUser => transferUser.username === inputTransferTo.value
@@ -198,14 +291,19 @@ btnTransfer.addEventListener('click', function (e) {
     reciverAccount.username !== current.username
   ) {
     // doing the transfer
+    let transfer_Date = current_date;
+    current.movementsDates.push(transfer_Date.toISOString());
     current.movements.push(-amount); // this will also perform the task of updating the blance and movents becuase it has allready been done in the reduce calucalting the summary
 
     reciverAccount.movements.push(amount);
+    reciverAccount.movementsDates.push(transfer_Date.toISOString());
     updateUi(current); // this will perform the 3 task to update the ui
 
     console.log('transfer valid');
+    LogoutTimer();
   } else {
     console.log('transfer invalid');
+    LogoutTimer();
   }
   inputTransferTo.value = inputTransferAmount.value = '';
 });
@@ -238,14 +336,27 @@ btnLoan.addEventListener('click', function (e) {
   let amount = Number(inputLoanAmount.value);
   console.log(amount);
   if (amount > 0 && current.movements.some(e => e >= amount / 10)) {
+    logoutLogic();
+    const transfer_date = new Date();
     current.movements.push(amount);
+    current.movementsDates.push(transfer_date.toISOString());
     updateUi(current);
     inputLoanAmount.value = '';
     loanAprroved.style.opacity = 100;
     loanAprroved.style.display = 'block';
+    setTimeout(function () {
+      loanAprroved.style.opacity = 0;
+      loanAprroved.style.display = 'none';
+    }, 1000);
+    LogoutTimer();
   } else {
     loanRejected.style.opacity = 100;
     loanRejected.style.display = 'block';
+    setTimeout(function () {
+      loanRejected.style.display = 'none';
+      loanRejected.style.opacity = 0;
+    }, 1000);
+    LogoutTimer();
   }
 });
 // Sort Order Logic
@@ -263,3 +374,25 @@ btnSort.addEventListener('click', function (e) {
   sortMovents(current.movements, !sort);
   sort = !sort;
 });
+// Updating the dates on the current balance
+
+const balance_date = setInterval(function () {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat(navigator.language, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+  }).format(now);
+  labelDate.textContent = formatter;
+}, 1000);
+
+console.log(account1);
+console.log(account2);
+
+const test = new Date();
+console.log();
+
+console.log(account1);
